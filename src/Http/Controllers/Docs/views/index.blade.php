@@ -21,7 +21,7 @@
     </div>
     <div class="container-fluid">
         <div class="row doc-hub-content-container">
-            <div class="col doc-hub-sidebar" data-stickys="100" data-pjaxs>
+            <div class="col doc-hub-sidebar" data-sticky="100" data-pjax>
                 <div class="doc-hub-container">
                     <div class="doc-hub-items" id="doc-hub-indexes">{!! $index !!}</div>
                 </div>

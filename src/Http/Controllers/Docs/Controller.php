@@ -61,6 +61,8 @@ class Controller extends BaseController
             $sections = $this->docs->formatSections($sections);
         }
 
+        $this->ajax('/docs');
+
         return [
             'content'  => $content['body'] ?? null,
             'title'    => $title ?? null,

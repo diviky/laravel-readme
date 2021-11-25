@@ -13,19 +13,20 @@ declare(strict_types=1);
 
 namespace Diviky\Readme\Http\Controllers\Docs;
 
-use Diviky\Readme\Http\Controllers\Docs\Mark\HeaderProcessor;
-use Diviky\Readme\Http\Controllers\Docs\Mark\MarkExtension;
-use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\View;
-use League\CommonMark\CommonMarkConverter;
+use Illuminate\Support\Str;
 use League\CommonMark\Environment;
+use Illuminate\Support\Facades\View;
+use Illuminate\Filesystem\Filesystem;
+use League\CommonMark\CommonMarkConverter;
 use League\CommonMark\Event\DocumentParsedEvent;
-use League\CommonMark\Extension\Attributes\AttributesExtension;
-use League\CommonMark\Extension\Footnote\FootnoteExtension;
-use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use League\CommonMark\Extension\Mention\MentionExtension;
+use Diviky\Readme\Http\Controllers\Docs\Mark\MarkExtension;
+use League\CommonMark\Extension\Footnote\FootnoteExtension;
+use Diviky\Readme\Http\Controllers\Docs\Mark\HeaderProcessor;
+use League\CommonMark\Extension\Attributes\AttributesExtension;
 use League\CommonMark\Extension\SmartPunct\SmartPunctExtension;
+use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 
 /**
  * @author sankar <sankar.suda@gmail.com>
@@ -130,7 +131,7 @@ class Repository
      *
      * @return string
      */
-    public function replaceLinks(string $content, string $version): ?string
+    public function replaceLinks(string $content, string $version, ?string $page): ?string
     {
         $config  = config('readme');
         $replace = $config['variables'];
@@ -255,7 +256,7 @@ class Repository
             $path = \str_replace('//', '/', $path);
 
             if ($this->files->exists($path)) {
-                return $this->replaceLinks($this->files->get($path), $version);
+                return $this->replaceLinks($this->files->get($path), $version, $path);
             }
 
             return null;
@@ -268,9 +269,9 @@ class Repository
      * @param mixed $template
      * @param mixed $data
      */
-    protected function blade($template, $data = []): string
+    protected function blade($template, $data = [], $prefix = null): string
     {
-        $filename = \uniqid('blade_');
+        $filename = \uniqid(Str::slug('blade_'.$prefix));
 
         $path = storage_path('app/tmp');
 
