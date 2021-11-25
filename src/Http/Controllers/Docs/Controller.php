@@ -49,21 +49,21 @@ class Controller extends BaseController
         $page    = $page ?: config('readme.docs.landing');
         $version = $version ?: config('readme.versions.default', 'master');
 
-        $version = $versions[$version] ?: $version;
+        $version = isset($versions[$version]) ? $versions[$version] : $version;
 
         $indexes = $this->docs->getIndexes($version);
         $content = $this->docs->getPage($page, $version);
 
         $sections = [];
-        if (\is_array($content['sections'])) {
+        if (isset($content['sections']) && \is_array($content['sections'])) {
             $sections = $content['sections'];
             $title    = $sections[0]['t'];
             $sections = $this->docs->formatSections($sections);
         }
 
         return [
-            'content'  => $content['body'],
-            'title'    => $title,
+            'content'  => $content['body'] ?? null,
+            'title'    => $title ?? null,
             'index'    => $indexes,
             'sections' => $sections,
             'versions' => $versions,
