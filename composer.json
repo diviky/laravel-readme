@@ -16,11 +16,8 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "league/commonmark": "^1.5"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "*"
+        "php": "^8.0|^8.1",
+        "league/commonmark": "^2.2"
     },
     "autoload": {
         "psr-4": {
@@ -31,12 +28,6 @@
         "psr-4": {
             "Diviky\\Readme\\Test\\": "tests"
         }
-    },
-    "scripts": {
-        "test": "phpunit"
-    },
-    "config": {
-        "sort-packages": true
     },
     "extra": {
         "laravel": {
