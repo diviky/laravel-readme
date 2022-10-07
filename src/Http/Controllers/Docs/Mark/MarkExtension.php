@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the Deployment package.
  *
@@ -11,7 +13,7 @@
 
 namespace Diviky\Readme\Http\Controllers\Docs\Mark;
 
-use League\CommonMark\ConfigurableEnvironmentInterface;
+use League\CommonMark\Environment\EnvironmentBuilderInterface;
 use League\CommonMark\Extension\ExtensionInterface;
 
 /**
@@ -21,7 +23,7 @@ class MarkExtension implements ExtensionInterface
 {
     protected $emojis = [];
 
-    public function register(ConfigurableEnvironmentInterface $environment)
+    public function register(EnvironmentBuilderInterface $environment): void
     {
         $environment
             ->addInlineParser(new EmojiParser($this->getEmojis()))

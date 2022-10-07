@@ -35,38 +35,13 @@
                             {!! $content !!}
                         </div>
                     </div>
-                    <div class="col-4 doc-hub-sections" data-sticky="100">
+                   <div class="col-4 doc-hub-sections" data-sticky="100">
                         <div class="doc-hub-container">
                             <div class="doc-hub-sections-items">
                                 <div class="doc-hub-sections-title">
-                                    <a href="#">
-                                        <i class="fa fa-align-left"></i> Table of Contents</a>
+                                    <a href="#"><i class="fa fa-align-left"></i> Table of Contents</a>
                                 </div>
-                                <ul role="page-nav">
-                                    @foreach ($sections as $item)
-                                    <li>
-                                        <a href="{{ $item['url'] }}">{{ $item['name'] }}</a>
-                                        @if (isset($item['childs']))
-                                        <ul>
-                                            @foreach ($item['childs'] as $child)
-                                            <li>
-                                                <a href="{{ url($child['url']) }}">{{ $child['name'] }}</a>
-                                                @if (isset($child['childs']))
-                                                <ul>
-                                                    @foreach ($child['childs'] as $gchild)
-                                                    <li>
-                                                        <a href="{{ $gchild['url'] }}">{{ $gchild['name'] }}</a>
-                                                    </li>
-                                                    @endforeach
-                                                </ul>
-                                                @endif
-                                            </li>
-                                            @endforeach
-                                        </ul>
-                                        @endif
-                                    </li>
-                                    @endforeach
-                                </ul>
+                                {!! $sections !!}
                             </div>
                         </div>
                     </div>

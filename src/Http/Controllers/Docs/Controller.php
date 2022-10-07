@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Diviky\Readme\Http\Controllers\Docs;
 
 use App\Http\Controllers\Controller as BaseController;
+use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * @author sankar <sankar.suda@gmail.com>
@@ -46,30 +47,30 @@ class Controller extends BaseController
     {
         $versions = $this->docs->getVersions();
 
-        $page    = $page ?: config('readme.docs.landing');
+        $page = $page ?: config('readme.docs.landing');
         $version = $version ?: config('readme.versions.default', 'master');
 
         $version = isset($versions[$version]) ? $versions[$version] : $version;
 
         $indexes = $this->docs->getIndexes($version);
         $content = $this->docs->getPage($page, $version);
+        $title = (new Crawler($content))->filterXPath('//h1');
 
-        $sections = [];
-        if (isset($content['sections']) && \is_array($content['sections'])) {
-            $sections = $content['sections'];
-            $title    = $sections[0]['t'];
-            $sections = $this->docs->formatSections($sections);
+        try {
+            $sections = (new Crawler($content))->filter('.table-of-contents');
+        } catch (\Exception $e) {
+            $sections = '';
         }
 
         $this->ajax('/docs');
 
         return [
-            'content'  => $content['body'] ?? null,
-            'title'    => $title ?? null,
-            'index'    => $indexes,
-            'sections' => $sections,
+            'title' => count($title) ? $title->text() : null,
+            'index' => $indexes,
+            'sections' => count($sections) ? $sections->outerHtml() : null,
+            'content' => $content['body'] ?? null,
             'versions' => $versions,
-            'version'  => $version,
+            'version' => $version,
         ];
     }
 }

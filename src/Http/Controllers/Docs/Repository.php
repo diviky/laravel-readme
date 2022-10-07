@@ -13,20 +13,22 @@ declare(strict_types=1);
 
 namespace Diviky\Readme\Http\Controllers\Docs;
 
-use Illuminate\Support\Str;
-use League\CommonMark\Environment;
-use Illuminate\Support\Facades\View;
-use Illuminate\Filesystem\Filesystem;
-use League\CommonMark\CommonMarkConverter;
-use League\CommonMark\Event\DocumentParsedEvent;
-use Illuminate\Contracts\Cache\Repository as Cache;
-use League\CommonMark\Extension\Mention\MentionExtension;
 use Diviky\Readme\Http\Controllers\Docs\Mark\MarkExtension;
-use League\CommonMark\Extension\Footnote\FootnoteExtension;
-use Diviky\Readme\Http\Controllers\Docs\Mark\HeaderProcessor;
+use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
+use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
-use League\CommonMark\Extension\SmartPunct\SmartPunctExtension;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\Footnote\FootnoteExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
+use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
+use League\CommonMark\Extension\Mention\MentionExtension;
+use League\CommonMark\Extension\SmartPunct\SmartPunctExtension;
+use League\CommonMark\Extension\Table\TableExtension;
+use League\CommonMark\Extension\TableOfContents\TableOfContentsExtension;
+use League\CommonMark\MarkdownConverter;
 
 /**
  * @author sankar <sankar.suda@gmail.com>
@@ -83,17 +85,20 @@ class Repository
 
     public function parse(string $content): array
     {
-        $environment = Environment::createCommonMarkEnvironment();
+        $config = config('readme.markdown');
 
-        $headerProcessor = new HeaderProcessor();
-        $environment->addEventListener(DocumentParsedEvent::class, $headerProcessor, -100);
+        $environment = new Environment($config);
 
+        $environment->addExtension(new CommonMarkCoreExtension());
         $environment->addExtension(new GithubFlavoredMarkdownExtension());
         $environment->addExtension(new AttributesExtension());
         $environment->addExtension(new FootnoteExtension());
         $environment->addExtension(new MentionExtension());
         $environment->addExtension(new SmartPunctExtension());
         $environment->addExtension(new MarkExtension());
+        $environment->addExtension(new TableExtension());
+        $environment->addExtension(new HeadingPermalinkExtension());
+        $environment->addExtension(new TableOfContentsExtension());
 
         $extensions = config('readme.extensions');
 
@@ -103,27 +108,29 @@ class Repository
             }
         }
 
-        $config = config('readme.markdown');
-
-        $converter = new CommonMarkConverter($config, $environment);
-        $content   = $converter->convertToHtml($content);
-
-        $sections = $headerProcessor->getSections();
+        $converter = new MarkdownConverter($environment);
+        $content = $converter->convert($content)->getContent();
 
         return [
-            'body'     => $content,
-            'sections' => $sections,
+            'body' => $content,
         ];
     }
 
     public function parseSimple(string $content): string
     {
-        $environment = Environment::createCommonMarkEnvironment();
+        $config = config('readme.markdown');
+
+        $environment = new Environment($config);
+        $environment->addExtension(new CommonMarkCoreExtension());
         $environment->addExtension(new MarkExtension());
+        $environment->addExtension(new GithubFlavoredMarkdownExtension());
+        $environment->addExtension(new TableExtension());
+        $environment->addExtension(new HeadingPermalinkExtension());
+        $environment->addExtension(new TableOfContentsExtension());
 
-        $converter = new CommonMarkConverter([], $environment);
+        $converter = new MarkdownConverter($environment);
 
-        return $converter->convertToHtml($content);
+        return $converter->convert($content)->getContent();
     }
 
     /**
@@ -133,14 +140,14 @@ class Repository
      */
     public function replaceLinks(string $content, string $version, ?string $page): ?string
     {
-        $config  = config('readme');
+        $config = config('readme');
         $replace = $config['variables'];
         if (!\is_array($replace)) {
             $replace = [];
         }
 
         $replace['version'] = $version;
-        $replace['domain']  = request()->getSchemeAndHttpHost();
+        $replace['domain'] = request()->getSchemeAndHttpHost();
 
         if (isset($config['blade_support']) && true == $config['blade_support']) {
             $content = $this->blade($content, $replace);
@@ -166,37 +173,37 @@ class Repository
 
     public function formatSections(array $sections): array
     {
-        $formated    = [];
-        $firstLoop   = 0;
-        $secondLoop  = 0;
-        $thirdLoop   = 0;
+        $formated = [];
+        $firstLoop = 0;
+        $secondLoop = 0;
+        $thirdLoop = 0;
         $secondLevel = null;
-        $firstLevel  = null;
-        $thirdLevel  = null;
+        $firstLevel = null;
+        $thirdLevel = null;
 
         foreach ($sections as $section) {
             $level = $section['l'];
 
             $format = [
                 'name' => $section['t'],
-                'url'  => '#' . $section['s'],
+                'url' => '#' . $section['s'],
             ];
 
             if (\is_null($firstLevel) || $firstLevel == $level || $firstLevel > $level) {
                 ++$firstLoop;
                 $formated[$firstLoop] = $format;
-                $firstLevel           = $level;
+                $firstLevel = $level;
             } elseif ($firstLevel < $level) {
                 if (\is_null($secondLevel) || $secondLevel == $level || $secondLevel > $level) {
                     ++$secondLoop;
                     $formated[$firstLoop]['childs'][$secondLoop] = $format;
-                    $secondLevel                                 = $level;
+                    $secondLevel = $level;
                 } elseif ($secondLevel < $level) {
-                    //Thid loop
+                    // Thid loop
                     if (\is_null($thirdLevel) || $thirdLevel == $level || $thirdLevel > $level) {
                         ++$thirdLoop;
                         $formated[$firstLoop]['childs'][$secondLoop]['childs'][$thirdLoop] = $format;
-                        $thirdLevel                                                        = $level;
+                        $thirdLevel = $level;
                     } else {
                         $formated[$firstLoop]['childs'][$secondLoop]['childs'][$thirdLoop]['childs'][] = $format;
                     }
@@ -242,8 +249,8 @@ class Repository
     protected function getContent(string $page, $version = '1.0')
     {
         $config = config('readme');
-        $time   = $config['cache_time'] ?: 20;
-        $docs   = $config['docs'];
+        $time = $config['cache_time'] ?: 20;
+        $docs = $config['docs'];
 
         return $this->cache->remember('docs.' . $version . $page, $time, function () use ($version, $page, $docs) {
             $path = $docs['path'] . '/' . $version . '/' . $page;
@@ -266,12 +273,13 @@ class Repository
     /**
      * Render a given blade template with the optionally given data.
      *
-     * @param mixed $template
-     * @param mixed $data
+     * @param mixed      $template
+     * @param mixed      $data
+     * @param null|mixed $prefix
      */
     protected function blade($template, $data = [], $prefix = null): string
     {
-        $filename = \uniqid(Str::slug('blade_'.$prefix));
+        $filename = \uniqid(Str::slug('blade_' . $prefix));
 
         $path = storage_path('app/tmp');
 
@@ -285,7 +293,7 @@ class Repository
 
         \file_put_contents($filepath, \trim($template));
 
-        $rendered = (View::make($filename, $data))->render();
+        $rendered = View::make($filename, $data)->render();
 
         \unlink($filepath);
 

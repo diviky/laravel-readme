@@ -1,6 +1,6 @@
 <?php
 
-declare (strict_types = 1);
+declare(strict_types=1);
 
 /*
  * This file is part of the Deployment package.
@@ -13,9 +13,10 @@ declare (strict_types = 1);
 
 namespace Diviky\Readme\Http\Controllers\Docs\Mark;
 
-use League\CommonMark\InlineParserContext;
-use League\CommonMark\Inline\Element\Image;
-use League\CommonMark\Inline\Parser\InlineParserInterface;
+use League\CommonMark\Extension\CommonMark\Node\Inline\Image;
+use League\CommonMark\Parser\Inline\InlineParserInterface;
+use League\CommonMark\Parser\Inline\InlineParserMatch;
+use League\CommonMark\Parser\InlineParserContext;
 
 /**
  * This is the emoji parser class.
@@ -41,28 +42,19 @@ class EmojiParser implements InlineParserInterface
         $this->map = $map;
     }
 
-    /**
-     * Get the characters that must be matched.
-     *
-     * @return string[]
-     */
-    public function getCharacters(): array
+    public function getMatchDefinition(): InlineParserMatch
     {
-        return [':'];
+        return InlineParserMatch::regex(':');
     }
 
     /**
      * Parse a line and determine if it contains an emoji.
      *
      * If it does, then we do the necessary.
-     *
-     * @param \League\CommonMark\InlineParserContext $inlineContext
-     *
-     * @return bool
      */
     public function parse(InlineParserContext $inlineContext): bool
     {
-        $cursor   = $inlineContext->getCursor();
+        $cursor = $inlineContext->getCursor();
         $previous = $cursor->peek(-1);
         if (null !== $previous && ' ' !== $previous) {
             return false;
@@ -87,7 +79,7 @@ class EmojiParser implements InlineParserInterface
 
             return false;
         }
-        $inline                     = new Image($this->map[$key], $key);
+        $inline = new Image($this->map[$key], $key);
         $inline->data['attributes'] = ['class' => 'emoji', 'data-emoji' => $key];
         $inlineContext->getContainer()->appendChild($inline);
 
