@@ -154,6 +154,8 @@ class Repository
         }
 
         foreach ($replace as $key => $value) {
+            $value = (string) $value;
+
             $content = \str_replace('{' . $key . '}', $value, $content);
             $content = \str_replace('{{$' . $key . '}}', $value, $content);
             $content = \str_replace('{{ $' . $key . ' }}', $value, $content);
