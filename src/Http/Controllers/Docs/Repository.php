@@ -16,11 +16,8 @@ namespace Diviky\Readme\Http\Controllers\Docs;
 use Diviky\Readme\Http\Controllers\Docs\Mark\MarkExtension;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Str;
-use League\CommonMark\Environment\Environment;
+use Illuminate\Support\Facades\Blade;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
-use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Footnote\FootnoteExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
@@ -28,7 +25,6 @@ use League\CommonMark\Extension\Mention\MentionExtension;
 use League\CommonMark\Extension\SmartPunct\SmartPunctExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TableOfContents\TableOfContentsExtension;
-use League\CommonMark\MarkdownConverter;
 
 /**
  * @author sankar <sankar.suda@gmail.com>
@@ -87,32 +83,28 @@ class Repository
     {
         $config = config('readme.markdown');
 
-        $environment = new Environment($config);
-
-        $environment->addExtension(new CommonMarkCoreExtension());
-        $environment->addExtension(new GithubFlavoredMarkdownExtension());
-        $environment->addExtension(new AttributesExtension());
-        $environment->addExtension(new FootnoteExtension());
-        $environment->addExtension(new MentionExtension());
-        $environment->addExtension(new SmartPunctExtension());
-        $environment->addExtension(new MarkExtension());
-        $environment->addExtension(new TableExtension());
-        $environment->addExtension(new HeadingPermalinkExtension());
-        $environment->addExtension(new TableOfContentsExtension());
+        $converter = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)
+            ->commonmarkOptions($config)
+            ->addExtension(new GithubFlavoredMarkdownExtension())
+            ->addExtension(new AttributesExtension())
+            ->addExtension(new FootnoteExtension())
+            ->addExtension(new MentionExtension())
+            ->addExtension(new SmartPunctExtension())
+            ->addExtension(new MarkExtension())
+            ->addExtension(new TableExtension())
+            ->addExtension(new HeadingPermalinkExtension())
+            ->addExtension(new TableOfContentsExtension());
 
         $extensions = config('readme.extensions');
 
         if (\is_array($extensions)) {
             foreach ($extensions as $extension) {
-                $environment->addExtension($extension);
+                $converter = $converter->addExtension($extension);
             }
         }
 
-        $converter = new MarkdownConverter($environment);
-        $content = $converter->convert($content)->getContent();
-
         return [
-            'body' => $content,
+            'body' => $converter->toHtml($content),
         ];
     }
 
@@ -120,17 +112,12 @@ class Repository
     {
         $config = config('readme.markdown');
 
-        $environment = new Environment($config);
-        $environment->addExtension(new CommonMarkCoreExtension());
-        $environment->addExtension(new MarkExtension());
-        $environment->addExtension(new GithubFlavoredMarkdownExtension());
-        $environment->addExtension(new TableExtension());
-        $environment->addExtension(new HeadingPermalinkExtension());
-        $environment->addExtension(new TableOfContentsExtension());
+        $converter = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)
+            ->commonmarkOptions($config)
+            ->addExtension(new MarkExtension())
+            ->addExtension(new GithubFlavoredMarkdownExtension());
 
-        $converter = new MarkdownConverter($environment);
-
-        return $converter->convert($content)->getContent();
+        return $converter->toHtml($content);
     }
 
     /**
@@ -163,7 +150,7 @@ class Repository
             $content = \str_replace('{{' . $key . '}}', $value, $content);
         }
 
-        return $content;
+        return $this->parseIncludes($content);
     }
 
     public function getIndexes($version): ?string
@@ -248,10 +235,27 @@ class Repository
         return $versions;
     }
 
+    protected function parseIncludes(string $content): string
+    {
+        $re = '/\#include ([\"\'])?([^\"\s\']+)([\"\'])?/m';
+
+        return preg_replace_callback(
+            $re,
+            function ($matches): ?string {
+                if (isset($matches[2])) {
+                    return $this->getContent(rtrim($matches[2], '.md'), '');
+                }
+
+                return null;
+            },
+            $content
+        );
+    }
+
     protected function getContent(string $page, $version = '1.0')
     {
         $config = config('readme');
-        $time = $config['cache_time'] ?: 20;
+        $time = $config['cache_time'] ?? 600;
         $docs = $config['docs'];
 
         return $this->cache->remember('docs.' . $version . $page, $time, function () use ($version, $page, $docs) {
@@ -275,30 +279,11 @@ class Repository
     /**
      * Render a given blade template with the optionally given data.
      *
-     * @param mixed      $template
-     * @param mixed      $data
-     * @param null|mixed $prefix
+     * @param mixed $content
+     * @param mixed $data
      */
-    protected function blade($template, $data = [], $prefix = null): string
+    protected function blade($content, $data = []): string
     {
-        $filename = \uniqid(Str::slug('blade_' . $prefix));
-
-        $path = storage_path('app/tmp');
-
-        View::addLocation($path);
-
-        $filepath = $path . DIRECTORY_SEPARATOR . "{$filename}.blade.php";
-
-        if (!\file_exists($path)) {
-            \mkdir($path, 0777, true);
-        }
-
-        \file_put_contents($filepath, \trim($template));
-
-        $rendered = View::make($filename, $data)->render();
-
-        \unlink($filepath);
-
-        return $rendered;
+        return Blade::render($content, $data);
     }
 }
