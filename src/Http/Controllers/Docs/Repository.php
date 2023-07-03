@@ -136,6 +136,14 @@ class Repository
         $replace['version'] = $version;
         $replace['domain'] = request()->getSchemeAndHttpHost();
 
+        $parsers = $config['parsers'] ?? [];
+
+        if (isset($parsers) && is_array($parsers)) {
+            foreach ($parsers as $parser) {
+                $content = $this->getClassInstance($parser)->parse($content);
+            }
+        }
+
         if (isset($config['blade_support']) && true == $config['blade_support']) {
             $content = $this->blade($content, $replace);
         }
@@ -233,6 +241,15 @@ class Repository
         $versions['master'] = \key($versions);
 
         return $versions;
+    }
+
+    protected function getClassInstance($class)
+    {
+        if (is_string($class) && class_exists($class)) {
+            $class = new $class();
+        }
+
+        return $class;
     }
 
     protected function parseIncludes(string $content): string
