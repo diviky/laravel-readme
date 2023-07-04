@@ -56,10 +56,8 @@ class Repository
 
     /**
      * Get the given documentation page.
-     *
-     * @return string
      */
-    public function getPage(string $page, string $version = '1.0'): array
+    public function getPage(string $page, string $version = '1.0'): string
     {
         $content = $this->getContent($page, $version);
         if ($content) {
@@ -69,17 +67,7 @@ class Repository
         return [];
     }
 
-    public function getSimplePage(string $page, string $version = '1.0'): ?string
-    {
-        $content = $this->getContent($page, $version);
-        if ($content) {
-            return $this->parseSimple($content);
-        }
-
-        return null;
-    }
-
-    public function parse(string $content): array
+    public function parse(string $content): string
     {
         $config = config('readme.markdown');
 
@@ -99,25 +87,11 @@ class Repository
 
         if (\is_array($extensions)) {
             foreach ($extensions as $extension) {
-                $converter = $converter->addExtension($extension);
+                $converter->addExtension($extension);
             }
         }
 
-        return [
-            'body' => $converter->toHtml($content),
-        ];
-    }
-
-    public function parseSimple(string $content): string
-    {
-        $config = config('readme.markdown');
-
-        $converter = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)
-            ->commonmarkOptions($config)
-            ->addExtension(new MarkExtension())
-            ->addExtension(new GithubFlavoredMarkdownExtension());
-
-        return $converter->toHtml($content);
+        return $converter->convertToHtml($content)->getContent();
     }
 
     /**
@@ -125,16 +99,16 @@ class Repository
      *
      * @return string
      */
-    public function replaceLinks(string $content, string $version, ?string $page): ?string
+    public function replaceLinks(string $content, string $version): ?string
     {
         $config = config('readme');
-        $replace = $config['variables'];
-        if (!\is_array($replace)) {
-            $replace = [];
+        $variables = $config['variables'];
+        if (!\is_array($variables)) {
+            $variables = [];
         }
 
-        $replace['version'] = $version;
-        $replace['domain'] = request()->getSchemeAndHttpHost();
+        $variables['version'] = $version;
+        $variables['domain'] = request()->getSchemeAndHttpHost();
 
         $parsers = $config['parsers'] ?? [];
 
@@ -145,18 +119,10 @@ class Repository
         }
 
         if (isset($config['blade_support']) && true == $config['blade_support']) {
-            $content = $this->blade($content, $replace);
+            $content = $this->blade($content, $variables);
         }
 
-        foreach ($replace as $key => $value) {
-            $value = (string) $value;
-
-            $content = \str_replace('{' . $key . '}', $value, $content);
-            $content = \str_replace('{{$' . $key . '}}', $value, $content);
-            $content = \str_replace('{{ $' . $key . ' }}', $value, $content);
-            $content = \str_replace('{{ ' . $key . ' }}', $value, $content);
-            $content = \str_replace('{{' . $key . '}}', $value, $content);
-        }
+        $content = $this->replaceVariables($content, $variables);
 
         return $this->parseIncludes($content);
     }
@@ -165,54 +131,7 @@ class Repository
     {
         $documentation = config('readme.docs.menu');
 
-        return $this->getSimplePage($documentation, $version);
-    }
-
-    public function formatSections(array $sections): array
-    {
-        $formated = [];
-        $firstLoop = 0;
-        $secondLoop = 0;
-        $thirdLoop = 0;
-        $secondLevel = null;
-        $firstLevel = null;
-        $thirdLevel = null;
-
-        foreach ($sections as $section) {
-            $level = $section['l'];
-
-            $format = [
-                'name' => $section['t'],
-                'url' => '#' . $section['s'],
-            ];
-
-            if (\is_null($firstLevel) || $firstLevel == $level || $firstLevel > $level) {
-                ++$firstLoop;
-                $formated[$firstLoop] = $format;
-                $firstLevel = $level;
-            } elseif ($firstLevel < $level) {
-                if (\is_null($secondLevel) || $secondLevel == $level || $secondLevel > $level) {
-                    ++$secondLoop;
-                    $formated[$firstLoop]['childs'][$secondLoop] = $format;
-                    $secondLevel = $level;
-                } elseif ($secondLevel < $level) {
-                    // Thid loop
-                    if (\is_null($thirdLevel) || $thirdLevel == $level || $thirdLevel > $level) {
-                        ++$thirdLoop;
-                        $formated[$firstLoop]['childs'][$secondLoop]['childs'][$thirdLoop] = $format;
-                        $thirdLevel = $level;
-                    } else {
-                        $formated[$firstLoop]['childs'][$secondLoop]['childs'][$thirdLoop]['childs'][] = $format;
-                    }
-                } else {
-                    $formated[$firstLoop]['childs'][$secondLoop]['childs'][] = $format;
-                }
-            } else {
-                $formated[$firstLoop]['childs'][] = $format;
-            }
-        }
-
-        return $formated;
+        return $this->getPage($documentation, $version);
     }
 
     public function getTitle($content): ?string
@@ -241,6 +160,21 @@ class Repository
         $versions['master'] = \key($versions);
 
         return $versions;
+    }
+
+    protected function replaceVariables($content, array $variables = [])
+    {
+        foreach ($variables as $key => $value) {
+            $value = (string) $value;
+
+            $content = \str_replace('{' . $key . '}', $value, $content);
+            $content = \str_replace('{{$' . $key . '}}', $value, $content);
+            $content = \str_replace('{{ $' . $key . ' }}', $value, $content);
+            $content = \str_replace('{{ ' . $key . ' }}', $value, $content);
+            $content = \str_replace('{{' . $key . '}}', $value, $content);
+        }
+
+        return $content;
     }
 
     protected function getClassInstance($class)

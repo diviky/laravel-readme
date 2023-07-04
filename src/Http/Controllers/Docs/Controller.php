@@ -68,7 +68,7 @@ class Controller extends BaseController
             'title' => count($title) ? $title->text() : null,
             'index' => $indexes,
             'sections' => count($sections) ? $sections->outerHtml() : null,
-            'content' => $content['body'] ?? null,
+            'content' => $content ?? null,
             'versions' => $versions,
             'version' => $version,
         ];
