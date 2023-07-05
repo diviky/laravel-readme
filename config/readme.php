@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Diviky\Readme\Parsers\CodeParser;
+
 return [
     'docs' => [
         'route' => '/docs',
@@ -16,17 +18,15 @@ return [
             'v1',
         ],
     ],
-    'variables' => [],
     'cache_time' => 600,
     'blade_support' => true,
-    'extensions' => [],
     // markdown configuration
     'markdown' => [
         'table_of_contents' => [
             'html_class' => 'table-of-contents',
             'position' => 'top',
             'style' => 'bullet',
-            'min_heading_level' => 1,
+            'min_heading_level' => 2,
             'max_heading_level' => 3,
             'normalize' => 'relative',
             'placeholder' => '<!--[TOC]-->',
@@ -44,5 +44,10 @@ return [
         ],
     ],
 
+    'default_parsers' => [
+        CodeParser::class,
+    ],
     'parsers' => [],
+    'extensions' => [],
+    'variables' => [],
 ];
