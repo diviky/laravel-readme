@@ -63,10 +63,7 @@ class CodeGen
 
     protected function callCodeGen(...$arguments): string
     {
-        try {
-            $root = $this->callNpm() . '/';
-        } catch (\Exception) {
-        }
+        $root = '';
 
         $command = [
             (new ExecutableFinder())->find('node', 'node', [
@@ -82,31 +79,6 @@ class CodeGen
             $command,
             $this->getWorkingDirPath(),
             null,
-        );
-
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-
-        return $process->getOutput();
-    }
-
-    protected function callNpm(): string
-    {
-        $command = [
-            (new ExecutableFinder())->find('npm', 'npm', [
-                '/usr/local/bin',
-                '/usr/bin',
-                '/opt/homebrew/bin',
-            ]),
-            'root',
-            '-g',
-        ];
-
-        $process = new Process(
-            $command,
         );
 
         $process->run();

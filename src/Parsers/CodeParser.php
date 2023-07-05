@@ -54,6 +54,7 @@ class CodeParser
             foreach ($language['variants'] as $variant) {
                 $snippet = '';
                 $snippet .= '##### ' . $language['label'] . ' - ' . $variant['key'] . "\n";
+                $snippet .= '{.code-block-' . $language['syntax_mode'] . '}' . "\n";
                 $snippet .= '```' . $language['syntax_mode'] . "\n";
 
                 try {

@@ -1,22 +1,21 @@
 // get root folder of global node modules
-//const root = '/opt/homebrew/lib/node_modules';
 //const { execSync } = require('child_process');
 //const root = execSync('npm root -g').toString().trim();
 
 const arguments = JSON.parse(process.argv.slice(2));
 const root = arguments[0];
+const command = arguments[1];
+const options = arguments[2] || {};
 
 const codegen = require(`${root}postman-code-generators`);
 const sdk = require(`${root}postman-collection`);
 
-const options = arguments[2] || {};
-
-if (arguments[1] === 'languages') {
+if (command === 'languages') {
     process.stdout.write(JSON.stringify(codegen.getLanguageList()));
     return;
 }
 
-if (arguments[1] === 'options') {
+if (command === 'options') {
     const language = options.language || 'cURL';
     const variant = options.variant || 'cURL';
 
@@ -31,7 +30,7 @@ if (arguments[1] === 'options') {
     return;
 }
 
-if (arguments[1] === 'convert') {
+if (command === 'convert') {
     const settings = {
         indentCount: 4,
         indentType: 'Space',

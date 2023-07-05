@@ -1,0 +1,12 @@
+{
+    "name": "laravel-readme",
+    "main": "index.js",
+    "scripts": {
+        "build": "rollup -c"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "postman-code-generators": "^1.8.0",
+        "postman-collection": "^4.1.7"
+    }
+}
