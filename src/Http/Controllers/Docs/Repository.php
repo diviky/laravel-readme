@@ -132,7 +132,9 @@ class Repository
             $variables = [];
         }
 
-        $variables['version'] = $version;
+        if (!empty($version)) {
+            $variables['version'] = $version;
+        }
 
         $content = $this->replaceVariables($content, $variables);
 
@@ -149,7 +151,9 @@ class Repository
             $content = $this->blade($content, $variables);
         }
 
-        return $this->parseIncludes($content);
+        $content = $this->parseIncludes($content);
+
+        return $this->replaceVariables($content, $variables);
     }
 
     public function getIndexes($version): ?string
@@ -213,10 +217,14 @@ class Repository
 
     protected function parseIncludes(string $content): ?string
     {
-        $re = '/\#include ([\"\'])?([^\"\s\']+)([\"\'])?/m';
+        $regx = '/\#include ([\"\'])?([^\"\s\']+)([\"\'])?/m';
+
+        if (!preg_match($regx, $content)) {
+            return $content;
+        }
 
         return preg_replace_callback(
-            $re,
+            $regx,
             function ($matches): ?string {
                 if (isset($matches[2])) {
                     return $this->toHtml($matches[2], '');
