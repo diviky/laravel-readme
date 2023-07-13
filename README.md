@@ -12,6 +12,13 @@ Route::group(['middleware' => ['web']], function () {
 });
 ```
 
+### Replace variables
+
+You can use the Laravel blade syntax inside markdown files to replace the variables and render conditions.
+
+Variables wrapped between `##` will be replaced with their corresponding values. ex: `##version##` or `##domain##`
+
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

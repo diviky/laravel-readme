@@ -238,11 +238,13 @@ class Repository
         foreach ($variables as $key => $value) {
             $value = (string) $value;
 
+            $content = \str_replace('##' . $key . '##', $value, $content);
             $content = \str_replace('{' . $key . '}', $value, $content);
             $content = \str_replace('{{$' . $key . '}}', $value, $content);
             $content = \str_replace('{{ $' . $key . ' }}', $value, $content);
             $content = \str_replace('{{ ' . $key . ' }}', $value, $content);
             $content = \str_replace('{{' . $key . '}}', $value, $content);
+            $content = preg_replace('/\{[^\}]+(' . $key . ')[^\}]+\}/m', $value, $content);
         }
 
         return $content;
