@@ -45,6 +45,9 @@ class Repository
      */
     protected $cache;
 
+    protected $config = [];
+    protected $variables = [];
+
     /**
      * Create a new documentation instance.
      */
@@ -59,19 +62,25 @@ class Repository
      */
     public function getPage(string $page, string $version = '1.0'): string
     {
-        return $this->convert($page, $version);
-    }
-
-    public function convert(string $page, string $version = '1.0'): string
-    {
-        $content = $this->toHtml($page, $version);
-
         $config = config('readme');
-        $variables = $config['variables'];
+
+        $variables = $config['variables'] ?? [];
         if (!\is_array($variables)) {
             $variables = [];
         }
 
+        return $this->setConfig($config)->setVariables($variables)->convert($page, $version);
+    }
+
+    public function convert(string $page, string $version = '1.0'): string
+    {
+        $time = $this->config['cache_time'] ?? 600;
+
+        $content = $this->cache->remember('docs.' . $version . $page, $time, function () use ($version, $page) {
+            return $this->toHtml($page, $version);
+        });
+
+        $variables = $this->variables;
         $variables['version'] = $version;
         $variables['domain'] = request()->getSchemeAndHttpHost();
 
@@ -80,22 +89,17 @@ class Repository
 
     public function toHtml(string $page, string $version = '1.0'): string
     {
-        $config = config('readme');
-        $time = $config['cache_time'] ?? 600;
+        $content = $this->getMarkdownContent($page, $version);
+        if (!empty($content)) {
+            return $this->parse($this->replaceLinks($content, $version));
+        }
 
-        return $this->cache->remember('docs.' . $version . $page, $time, function () use ($version, $page, $config) {
-            $content = $this->getContent($page, $version, $config);
-            if (!empty($content)) {
-                return $this->parse($content, $config);
-            }
-
-            return '';
-        });
+        return '';
     }
 
-    public function parse(string $content, array $config): string
+    public function parse(string $content): string
     {
-        $settings = $config['markdown'];
+        $settings = $this->config['markdown'] ?? [];
 
         $converter = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)
             ->commonmarkOptions($settings)
@@ -109,7 +113,7 @@ class Repository
             ->addExtension(new HeadingPermalinkExtension())
             ->addExtension(new TableOfContentsExtension());
 
-        $extensions = $config['extensions'];
+        $extensions = $this->config['extensions'] ?? [];
 
         if (\is_array($extensions)) {
             foreach ($extensions as $extension) {
@@ -125,35 +129,29 @@ class Repository
      *
      * @return string
      */
-    public function replaceLinks(string $content, string $version, array $config): ?string
+    public function replaceLinks(string $content, string $version): ?string
     {
-        $variables = $config['variables'];
-        if (!\is_array($variables)) {
-            $variables = [];
-        }
-
+        $variables = $this->variables;
         if (!empty($version)) {
             $variables['version'] = $version;
         }
 
         $content = $this->replaceVariables($content, $variables);
 
-        $parsers = $config['parsers'] ?? [];
-        $parsers = array_merge($config['default_parsers'], $parsers);
+        $parsers = $this->config['parsers'] ?? [];
+        $parsers = array_merge($this->config['default_parsers'] ?? [], $parsers);
 
         if (isset($parsers) && is_array($parsers)) {
             foreach ($parsers as $parser) {
-                $content = $this->getClassInstance($parser)->parse($content, $variables, $config);
+                $content = $this->getClassInstance($parser)->parse($content, $variables, $this->config);
             }
         }
 
-        if (isset($config['blade_support']) && true == $config['blade_support']) {
+        if (isset($this->config['blade_support']) && true == $this->config['blade_support']) {
             $content = $this->blade($content, $variables);
         }
 
-        $content = $this->parseIncludes($content);
-
-        return $this->replaceVariables($content, $variables);
+        return $this->parseIncludes($content);
     }
 
     public function getIndexes($version): ?string
@@ -191,7 +189,51 @@ class Repository
         return $versions;
     }
 
-    protected function replaceVariables($content, array $variables = [])
+    /**
+     * Get the value of config.
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Set the value of config.
+     *
+     * @param array $config
+     *
+     * @return self
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of variables.
+     */
+    public function getVariables()
+    {
+        return $this->variables;
+    }
+
+    /**
+     * Set the value of variables.
+     *
+     * @param mixed $variables
+     *
+     * @return self
+     */
+    public function setVariables($variables)
+    {
+        $this->variables = $variables;
+
+        return $this;
+    }
+
+    protected function replaceVariables(string $content, array $variables = []): string
     {
         foreach ($variables as $key => $value) {
             $value = (string) $value;
@@ -215,7 +257,7 @@ class Repository
         return $class;
     }
 
-    protected function parseIncludes(string $content): ?string
+    protected function parseIncludes(string $content): string
     {
         $regx = '/\#include ([\"\'])?([^\"\s\']+)([\"\'])?/m';
 
@@ -236,9 +278,9 @@ class Repository
         );
     }
 
-    protected function getContent(string $page, string $version = '1.0', array $config = [])
+    protected function getMarkdownContent(string $page, string $version = '1.0'): string
     {
-        $docs = $config['docs'];
+        $docs = $this->config['docs'];
         $path = $docs['path'] . '/' . $version . '/' . $page;
 
         if ($this->files->isDirectory($path)) {
@@ -249,10 +291,10 @@ class Repository
         $path = \str_replace('//', '/', $path);
 
         if ($this->files->exists($path)) {
-            return $this->replaceLinks($this->files->get($path), $version, $config);
+            return $this->files->get($path);
         }
 
-        return null;
+        return '';
     }
 
     /**

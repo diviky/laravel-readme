@@ -50,4 +50,24 @@ return [
     'parsers' => [],
     'extensions' => [],
     'variables' => [],
+    /*
+     * Language should generate for code block using postman language generator
+     * Should be postman getAvailableLanguages response format
+     */
+    'snippets' => null,
+
+    // Primary Languages Should Generate with variants
+    'code' => [
+        'csharp',
+        'curl',
+        'go',
+        'java',
+        'javascript',
+        'kotlin',
+        'nodejs',
+        'php',
+        'python',
+        'ruby',
+        'swift',
+    ],
 ];
