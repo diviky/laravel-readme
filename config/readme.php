@@ -70,4 +70,6 @@ return [
         'ruby',
         'swift',
     ],
+
+    'view' => 'readme::docs.index',
 ];

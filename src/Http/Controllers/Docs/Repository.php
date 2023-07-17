@@ -192,7 +192,7 @@ class Repository
     /**
      * Get the value of config.
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         return $this->config;
     }
@@ -204,7 +204,7 @@ class Repository
      *
      * @return self
      */
-    public function setConfig($config)
+    public function setConfig(array $config): self
     {
         $this->config = $config;
 
@@ -214,7 +214,7 @@ class Repository
     /**
      * Get the value of variables.
      */
-    public function getVariables()
+    public function getVariables(): array
     {
         return $this->variables;
     }

@@ -47,8 +47,9 @@ class Controller extends BaseController
     {
         $versions = $this->docs->getVersions();
 
-        $page = $page ?: config('readme.docs.landing');
-        $version = $version ?: config('readme.versions.default', 'master');
+        $config = config('readme');
+        $page = $page ?? $config['docs']['landing'];
+        $version = $version ?? ($config['versions']['default'] ?? 'master');
 
         $version = isset($versions[$version]) ? $versions[$version] : $version;
 
@@ -62,7 +63,9 @@ class Controller extends BaseController
             $sections = '';
         }
 
-        $this->ajax('/docs');
+        // $view = $config['view'] ?? null;
+
+        $this->ajax($config['docs']['route']);
 
         return [
             'title' => count($title) ? $title->text() : null,

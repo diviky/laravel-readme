@@ -85,8 +85,9 @@ class CodeParser
                 $syntax = $this->mappings[$syntax] ?? $syntax;
 
                 $snippet = '';
+                $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
                 $snippet .= '##### ' . $language['label'] . ' - ' . $variant['key'] . "\n";
-                $snippet .= '{.code-block-' . $syntax . '}' . "\n";
+                $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
                 $snippet .= '```' . $syntax . "\n";
 
                 try {
