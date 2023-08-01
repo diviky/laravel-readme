@@ -244,7 +244,7 @@ class Repository
             $content = \str_replace('{{ $' . $key . ' }}', $value, $content);
             $content = \str_replace('{{ ' . $key . ' }}', $value, $content);
             $content = \str_replace('{{' . $key . '}}', $value, $content);
-            $content = preg_replace('/\{[^\}]+(' . $key . ')[^\}]+\}/m', $value, $content);
+            $content = preg_replace('/\{[^\}]+(\b' . $key . '\b)[^\}]+/m', $value, $content);
         }
 
         return $content;
