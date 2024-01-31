@@ -18,6 +18,20 @@ class CodeParser
     protected array $config = [];
     protected array $variables = [];
 
+    public function setVariables(array $variables)
+    {
+        $this->variables = $variables;
+
+        return $this;
+    }
+
+    public function setConfig(array $config)
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
     public function parse(string $content, array $variables, array $config)
     {
         $this->config = $config;
@@ -34,29 +48,17 @@ class CodeParser
             return $content;
         }
 
-        $codegen = new CodeGen();
+        $languages = $this->getAvailableLanguages();
 
-        $languages = $this->config['snippets'] ?? null;
-
-        if (false === $languages) {
+        if (empty($languages)) {
             return preg_replace($regex, '', $content);
         }
 
-        if (!is_array($languages)) {
-            try {
-                $languages = $codegen->getAvailableLanguages();
-            } catch (\Exception) {
-                return preg_replace($regex, '', $content);
-            }
-        }
-
-        $path = $this->config['docs']['path'];
-
         return preg_replace_callback(
             $regex,
-            function ($matches) use ($path, $languages): string {
+            function ($matches) use ($languages): string {
                 if (isset($matches[2])) {
-                    return $this->snippet($path . '/' . $matches[2], $languages);
+                    return $this->snippets($matches[2], $languages);
                 }
 
                 return '';
@@ -65,40 +67,73 @@ class CodeParser
         );
     }
 
-    protected function snippet($file, $languages): string
+    public function getAvailableLanguages(): ?array
     {
-        $snippets = '';
-        $content = file_get_contents($file);
-        $request = json_decode(str_replace(['{{', '}}'], ['{', '}'], $content), true);
+        $languages = $this->config['snippets'] ?? null;
+
+        if (false === $languages) {
+            return null;
+        }
 
         $codegen = new CodeGen();
 
+        if (!is_array($languages)) {
+            try {
+                $languages = $codegen->getAvailableLanguages();
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        return $languages;
+    }
+
+    public function snippets($file, $languages): string
+    {
+        $snippets = '';
         $code = $this->config['code'] ?? [];
+        $path = $this->config['docs']['path'];
+        $file = $path . '/' . $file;
+
+        $content = file_get_contents($file);
+        $request = json_decode(str_replace(['{{', '}}'], ['{', '}'], $content), true);
 
         foreach ($languages as $language) {
             if (!in_array($language['key'], $code)) {
                 continue;
             }
 
-            foreach ($language['variants'] as $variant) {
-                $syntax = $language['syntax_mode'];
-                $syntax = $this->mappings[$syntax] ?? $syntax;
+            $snippets .= $this->snippet($request, $language);
+        }
 
-                $snippet = '';
-                $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
-                $snippet .= '##### ' . $language['label'] . ' - ' . $variant['key'] . "\n";
-                $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
-                $snippet .= '```' . $syntax . "\n";
+        return $snippets;
+    }
 
-                try {
-                    $snippet .= $codegen->generateCode($request, $language['key'], $variant['key']);
-                } catch (\Exception) {
-                    continue;
-                }
-                $snippet .= "\n" . '```' . "\n";
+    protected function snippet($request, $language): string
+    {
+        $codegen = new CodeGen();
 
-                $snippets .= str_replace('<?php', '&gt;?php', $snippet);
+        $snippets = '';
+
+        foreach ($language['variants'] as $variant) {
+            $syntax = $language['syntax_mode'];
+            $syntax = $this->mappings[$syntax] ?? $syntax;
+
+            try {
+                $code = $codegen->generateCode($request, $language['key'], $variant['key']);
+            } catch (\Exception) {
+                continue;
             }
+
+            $snippet = '';
+            $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
+            $snippet .= '##### ' . $language['label'] . ' - ' . $variant['key'] . "\n";
+            $snippet .= '{.code-block .code-block-' . $syntax . '}' . "\n";
+            $snippet .= '```' . $syntax . "\n";
+            $snippet .= $code;
+            $snippet .= "\n" . '```' . "\n";
+
+            $snippets .= str_replace('<?php', '&gt;?php', $snippet);
         }
 
         return $snippets;

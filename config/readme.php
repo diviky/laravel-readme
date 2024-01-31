@@ -45,7 +45,7 @@ return [
     ],
 
     'default_parsers' => [
-        CodeParser::class,
+        'code' => CodeParser::class,
     ],
     'parsers' => [],
     'extensions' => [],

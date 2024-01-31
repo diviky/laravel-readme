@@ -77,7 +77,7 @@ class Repository
         $time = $this->config['cache_time'] ?? 600;
 
         $content = $this->cache->remember('docs.' . $version . $page, $time, function () use ($version, $page) {
-            return $this->toHtml($page, $version);
+            return $this->getPageHtml($page, $version);
         });
 
         $variables = $this->variables;
@@ -87,7 +87,21 @@ class Repository
         return $this->replaceVariables($content, $variables);
     }
 
-    public function toHtml(string $page, string $version = '1.0'): string
+    public function toHtml(?string $content, string $version = '1.0'): string
+    {
+        if (!empty($content)) {
+            return $this->parse($this->replaceLinks($content, $version));
+        }
+
+        return '';
+    }
+
+    public function getPageHtml(string $page, string $version = '1.0'): string
+    {
+        return $this->toHtml($this->getMarkdownContent($page, $version), $version);
+    }
+
+    public function toMarkDown(string $page, string $version = '1.0'): string
     {
         $content = $this->getMarkdownContent($page, $version);
         if (!empty($content)) {
@@ -129,7 +143,7 @@ class Repository
      *
      * @return string
      */
-    public function replaceLinks(string $content, string $version): ?string
+    public function replaceLinks(string $content, string $version = null): ?string
     {
         $variables = $this->variables;
         if (!empty($version)) {
@@ -143,7 +157,9 @@ class Repository
 
         if (isset($parsers) && is_array($parsers)) {
             foreach ($parsers as $parser) {
-                $content = $this->getClassInstance($parser)->parse($content, $variables, $this->config);
+                if (!empty($parser)) {
+                    $content = $this->getClassInstance($parser)->parse($content, $variables, $this->config);
+                }
             }
         }
 
@@ -271,7 +287,7 @@ class Repository
             $regx,
             function ($matches): ?string {
                 if (isset($matches[2])) {
-                    return $this->toHtml($matches[2], '');
+                    return $this->getPageHtml($matches[2], '');
                 }
 
                 return '';
