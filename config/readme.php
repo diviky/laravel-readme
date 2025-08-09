@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Diviky\Readme\Helpers\AssetsParser;
 use Diviky\Readme\Parsers\CodeParser;
 
 return [
@@ -46,6 +47,7 @@ return [
 
     'default_parsers' => [
         'code' => CodeParser::class,
+        'assets' => AssetsParser::class,
     ],
     'parsers' => [],
     'extensions' => [],
@@ -70,6 +72,4 @@ return [
         'ruby',
         'swift',
     ],
-
-    'view' => 'readme::docs.index',
 ];

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Diviky\Readme;
 
+use Diviky\Readme\Component\Indexes;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +24,9 @@ class ReadmeServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom($this->path() . '/config/readme.php', 'readme');
+        $this->mergeConfigFrom($this->path() . '/config/markdown.php', 'markdown');
+
+        Blade::component('readme::indexes', Indexes::class);
     }
 
     protected function path()

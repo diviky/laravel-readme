@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Diviky\Readme\Parsers;
 
-use Diviky\Readme\Helper\CodeGen;
+use Diviky\Readme\Helpers\CodeGen;
 
 class CodeParser
 {
@@ -16,6 +16,7 @@ class CodeParser
     ];
 
     protected array $config = [];
+
     protected array $variables = [];
 
     public function setVariables(array $variables)
@@ -71,11 +72,11 @@ class CodeParser
     {
         $languages = $this->config['snippets'] ?? null;
 
-        if (false === $languages) {
+        if ($languages === false) {
             return null;
         }
 
-        $codegen = new CodeGen();
+        $codegen = new CodeGen;
 
         if (!is_array($languages)) {
             try {
@@ -111,7 +112,7 @@ class CodeParser
 
     protected function snippet($request, $language): string
     {
-        $codegen = new CodeGen();
+        $codegen = new CodeGen;
 
         $snippets = '';
 

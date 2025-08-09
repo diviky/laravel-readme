@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Diviky\Readme\Helper;
+namespace Diviky\Readme\Helpers;
 
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\ExecutableFinder;
@@ -25,7 +25,7 @@ class CodeGen
         $language = $language ?? 'cURL';
         $variant = $variant ?? 'cURL';
 
-        return (new static())->generateCode($request, $language, $variant);
+        return (new static)->generateCode($request, $language, $variant);
     }
 
     public function getAvailableLanguages(): array
@@ -54,7 +54,7 @@ class CodeGen
 
     public function getWorkingDirPath(): string
     {
-        if (null !== static::$customWorkingDirPath && ($path = realpath(static::$customWorkingDirPath)) !== false) {
+        if (static::$customWorkingDirPath !== null && ($path = realpath(static::$customWorkingDirPath)) !== false) {
             return $path;
         }
 
@@ -66,7 +66,7 @@ class CodeGen
         $root = '';
 
         $command = [
-            (new ExecutableFinder())->find('node', 'node', [
+            (new ExecutableFinder)->find('node', 'node', [
                 '/usr/local/bin',
                 '/usr/bin',
                 '/opt/homebrew/bin',

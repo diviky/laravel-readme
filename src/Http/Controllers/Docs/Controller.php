@@ -21,23 +21,6 @@ use Symfony\Component\DomCrawler\Crawler;
  */
 class Controller extends BaseController
 {
-    /**
-     * The documentation repository.
-     *
-     * @var \App\Documentation
-     */
-    protected $docs;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @param \App\Documentation $docs
-     */
-    public function __construct(Repository $docs)
-    {
-        $this->docs = $docs;
-    }
-
     public function loadViewsFrom(): string
     {
         return __DIR__;
@@ -45,7 +28,8 @@ class Controller extends BaseController
 
     public function index($version = null, $page = null): array
     {
-        $versions = $this->docs->getVersions();
+        $docs = resolve(Repository::class);
+        $versions = $docs->getVersions();
 
         $config = config('readme');
         $page = $page ?? $config['docs']['landing'];
@@ -53,8 +37,7 @@ class Controller extends BaseController
 
         $version = isset($versions[$version]) ? $versions[$version] : $version;
 
-        $indexes = $this->docs->getIndexes($version);
-        $content = $this->docs->getPage($page, $version);
+        $content = $docs->getPage($page, $version);
         $title = (new Crawler($content))->filterXPath('//h1');
 
         try {
@@ -63,17 +46,13 @@ class Controller extends BaseController
             $sections = '';
         }
 
-        // $view = $config['view'] ?? null;
-
-        $this->ajax($config['docs']['route']);
-
         return [
             'title' => count($title) ? $title->text() : null,
-            'index' => $indexes,
             'sections' => count($sections) ? $sections->outerHtml() : null,
             'content' => $content ?? null,
             'versions' => $versions,
             'version' => $version,
+            'route' => $config['docs']['route'],
         ];
     }
 }
