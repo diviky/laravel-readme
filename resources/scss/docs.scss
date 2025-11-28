@@ -6,7 +6,6 @@ $hub-sidebar-width: 250px;
         position: relative;
         padding-left: 0;
         .doc-hub-items {
-            margin-left: 20px;
             padding-bottom: 50px;
         }
         .slimScrollDiv {
@@ -19,7 +18,6 @@ $hub-sidebar-width: 250px;
             .doc-hub-items {
                 position: fixed;
                 width: $hub-sidebar-width - 20;
-                margin-left: 20px;
             }
         }
         .doc-hub-container {
@@ -297,37 +295,13 @@ $hub-sidebar-width: 250px;
                 color: #7d7f7f;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                color: theme-color("primary");
                 padding-left: 15px;
                 font-size: $font-size-base;
                 &.open {
-                    p {
-                        > a {
-                            &:before {
-                                content: "\ea5f";
-                                left: 0px;
-                            }
-                        }
-                    }
                     > ul {
                         display: block !important;
                     }
                 }
-                p {
-                    margin: 0;
-                    > a {
-                        display: block;
-                        &:before {
-                            font-family: "tabler-icons";
-                            content: "\ea61";
-                            left: 3px;
-                            position: absolute;
-                            font-weight: bold;
-                            font-size: $font-size-base;
-                        }
-                    }
-                }
-
                 h2,
                 h1,
                 h3,
@@ -336,7 +310,7 @@ $hub-sidebar-width: 250px;
                     font-size: $font-size-base;
                 }
                 > ul {
-                    margin-top: 10px;
+                    margin-top: 5px;
                     padding: 0;
                     // display: none;
                     list-style-type: none;

@@ -28,7 +28,7 @@
                         <a href="{{ url(config('readme.docs.route', '/docs') . '/' . ($result['version'] ?? '') . '/' . ($result['page'] ?? '')) }}"
                             class="readme-search-result-item" wire:key="result-{{ $result['id'] ?? $index }}">
                             <div class="readme-search-result-title">
-                                {{ $result['title'] ?? $result['page'] ?? 'Untitled' }}
+                                {{ $result['title'] ?? ($result['page'] ?? 'Untitled') }}
                             </div>
                             <div class="readme-search-result-meta">
                                 <span class="readme-search-result-version">{{ $result['version'] ?? '' }}</span>
