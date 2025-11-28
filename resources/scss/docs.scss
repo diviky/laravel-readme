@@ -1,11 +1,10 @@
-$hub-sidebar-width: 280px;
-
+$hub-sidebar-width: 250px;
 .doc-hub-content-container {
     //height: calc(100vh - 100px);
     .doc-hub-sidebar {
-        height: calc(100vh - 100px);
-        overflow-y: auto;
-        overflow-x: hidden;
+        //height: calc(100vh - 100px);
+        position: relative;
+        padding-left: 0;
         .doc-hub-items {
             margin-left: 20px;
             padding-bottom: 50px;
@@ -28,19 +27,20 @@ $hub-sidebar-width: 280px;
         }
     }
     .doc-hub-page {
-        border-left: 1px solid $border-color;
+        border-left: 1px solid var(--#{$prefix}border-color);
         margin-left: 5px;
+        background-color: var(--#{$prefix}body-bg);
         .doc-hub-body {
             margin-left: 20px;
         }
     }
-
     .doc-hub-sections {
         height: calc(100vh - 100px);
         overflow-y: auto;
         overflow-x: hidden;
         .doc-hub-sections-items {
-            position: absolute;
+            // position: absolute;
+            position: relative;
             overflow: scroll;
             overflow-x: hidden;
             top: 0;
@@ -64,11 +64,11 @@ $hub-sidebar-width: 280px;
     min-height: 600px;
     margin-left: 20px;
     padding-bottom: 50px;
-
-    h1, h2, h3 {
+    h1,
+    h2,
+    h3 {
         font-weight: normal;
     }
-
     h1 {
         font-size: 30px;
         margin-top: 30px;
@@ -76,28 +76,24 @@ $hub-sidebar-width: 280px;
             margin-top: 0px;
         }
     }
-
     h2 {
         margin-top: 40px;
         font-size: 23px;
     }
-
     h3 {
         margin-top: 35px;
         font-size: 20px;
     }
-
     h4 {
         font-size: 16px;
         font-weight: bold;
         margin-top: 30px;
     }
-
     p {
         line-height: 25px;
         margin: 15px 0 0 0;
+        font-size: 15px;
     }
-
     blockquote {
         margin-top: 20px;
         font-size: 14px;
@@ -105,85 +101,80 @@ $hub-sidebar-width: 280px;
         padding-left: 40px;
         position: relative;
         &:before {
-            font-family: 'FontAwesome';
-            content: "\f059";
+            font-family: "tabler-icons";
+            content: "\f635";
             position: absolute;
             font-size: 20px;
             left: 10px;
-            top: 5px;
+            top: 10px;
         }
-
         &.info {
             border-left: 5px solid $info;
-            background-color: lighten($info, 35%);
+            background-color: tint-color($info, 35%);
             color: $info;
             &:before {
-                content: "\f059";
+                content: "\f635";
             }
         }
-
         &.danger {
             border-left: 5px solid $danger;
-            background-color: lighten($danger, 45%);
+            background-color: tint-color($danger, 45%);
             color: $danger;
             &:before {
-                content: "\f071";
+                content: "\ea06";
             }
         }
-
         &.warning {
             border-left: 5px solid $danger;
-            background-color: lighten($danger, 35%);
+            background-color: tint-color($danger, 35%);
             color: $danger;
             &:before {
-                content: "\f071";
+                content: "\ea06";
             }
         }
-
         &.success {
             border-left: 5px solid $success;
-            background-color: lighten($success, 65%);
+            background-color: tint-color($success, 65%);
             color: $success;
             &:before {
-                content: "\f059";
+                content: "\eb45";
             }
         }
-
         border-left: 5px solid $info;
-        background-color: lighten($info, 35%);
+        background-color: tint-color($info, 35%);
         color: $info;
-
-        p,h1,h2,h3,h4,h5 {
+        p,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
             margin: 0;
             margin-bottom: 5px;
         }
         &.has-icon {
-            position : relative;
+            position: relative;
             p {
                 padding-left: 40px;
             }
         }
         &.tip {
-            background: #64B5F6;
+            background: #64b5f6;
         }
     }
-
-    blockquote, p code {
+    blockquote,
+    p code {
         border-radius: 3px;
     }
-
     ul {
         margin-top: 15px;
     }
-
     li > ul {
         margin-top: 0;
     }
-
     li {
         line-height: 25px;
     }
-
     pre {
         border: 0;
         background-color: #212448;
@@ -193,12 +184,11 @@ $hub-sidebar-width: 280px;
         color: #de935f; //c2c8c5
         border-radius: 5px;
         padding: 15px;
+        text-shadow: none;
     }
-
     .emoji {
         width: 25px;
     }
-
     .header-scroll {
         position: relative;
         .hub-anchor {
@@ -221,54 +211,48 @@ $hub-sidebar-width: 280px;
                 margin-left: -25px;
                 position: absolute;
                 font-size: 30px;
-                color: theme-color('primary');
-                opacity: .6;
+                color: theme-color("primary");
+                opacity: 0.6;
                 top: -3px;
             }
         }
     }
-
     table {
-      max-width: 100%;
-      min-width: 400px;
-      margin-top: 20px;
-      margin-bottom: $spacer;
-      background-color: $table-bg; // Reset for nesting within parents with `background-color`.
-      border: $table-border-width solid $table-border-color;
-
-      th,
-      td {
-        padding: $table-cell-padding;
-        vertical-align: top;
+        max-width: 100%;
+        min-width: 400px;
+        margin-top: 20px;
+        margin-bottom: $spacer;
+        background-color: $table-bg; // Reset for nesting within parents with `background-color`.
         border: $table-border-width solid $table-border-color;
-      }
-
-      thead th {
-        vertical-align: bottom;
-        border-bottom: (2 * $table-border-width) solid $table-border-color;
-      }
-
-      tbody + tbody {
-        border-top: (2 * $table-border-width) solid $table-border-color;
-      }
-
-      table {
-        background-color: $body-bg;
-      }
-
-      thead {
         th,
         td {
-          border-bottom-width: (2 * $table-border-width);
+            padding: $table-cell-padding-x $table-cell-padding-y;
+            vertical-align: top;
+            border: $table-border-width solid $table-border-color;
         }
-      }
+        thead th {
+            vertical-align: bottom;
+            border-bottom: $table-border-width solid $table-border-color;
+        }
+        tbody + tbody {
+            border-top: $table-border-width solid $table-border-color;
+        }
+        table {
+            background-color: $body-bg;
+        }
+        thead {
+            th,
+            td {
+                border-bottom-width: $table-border-width;
+            }
+        }
     }
 }
 
 .docs-hub {
-    background-color: #f6f7f8;
-    border-top: 1px solid $border-alt-color;
-    border-bottom: 1px solid $border-alt-color;
+    background-color: var(--#{$prefix}body-bg);
+    border-top: 1px solid var(--#{$prefix}border-color);
+    border-bottom: 1px solid var(--#{$prefix}border-color);
     .container {
         padding-left: 0;
     }
@@ -279,7 +263,7 @@ $hub-sidebar-width: 280px;
         font-size: $font-size-sm;
         padding-left: 0;
         .breadcrumb-item + .breadcrumb-item::before {
-            font-family: 'FontAwesome';
+            font-family: "tabler-icons";
             content: "\f105";
         }
     }
@@ -289,10 +273,8 @@ $hub-sidebar-width: 280px;
     padding-right: 0;
     flex: 0 0 280px;
     min-height: 400px;
-
     .doc-hub-items {
         margin-top: 20px;
-
         position: absolute;
         overflow: scroll;
         overflow-x: hidden;
@@ -302,7 +284,9 @@ $hub-sidebar-width: 280px;
         left: 0;
         width: 100%;
         height: 100%;
-
+        p {
+            margin: 0;
+        }
         > ul {
             padding: 0;
             margin: 0;
@@ -312,22 +296,55 @@ $hub-sidebar-width: 280px;
                 margin-bottom: 10px;
                 color: #7d7f7f;
                 text-transform: uppercase;
-                font-weight: 600;
-                letter-spacing: .5px;
-                color: theme-color('primary');
-                h2,h1,h3,h4 {
+                letter-spacing: 0.5px;
+                color: theme-color("primary");
+                padding-left: 15px;
+                font-size: $font-size-base;
+                &.open {
+                    p {
+                        > a {
+                            &:before {
+                                content: "\ea5f";
+                                left: 0px;
+                            }
+                        }
+                    }
+                    > ul {
+                        display: block !important;
+                    }
+                }
+                p {
+                    margin: 0;
+                    > a {
+                        display: block;
+                        &:before {
+                            font-family: "tabler-icons";
+                            content: "\ea61";
+                            left: 3px;
+                            position: absolute;
+                            font-weight: bold;
+                            font-size: $font-size-base;
+                        }
+                    }
+                }
+
+                h2,
+                h1,
+                h3,
+                h4 {
                     font-weight: 600;
                     font-size: $font-size-base;
                 }
                 > ul {
                     margin-top: 10px;
                     padding: 0;
+                    // display: none;
                     list-style-type: none;
                     > li {
                         display: block;
-                        &.has-child > a{
+                        &.has-child > a {
                             &:after {
-                                font-family: 'FontAwesome';
+                                font-family: "tabler-icons";
                                 content: "\f105";
                                 right: 15px;
                                 position: absolute;
@@ -339,7 +356,7 @@ $hub-sidebar-width: 280px;
                             > ul {
                                 display: block !important;
                             }
-                            > a{
+                            > a {
                                 background-color: $gray-200;
                                 &:after {
                                     content: "\f107";
@@ -351,7 +368,7 @@ $hub-sidebar-width: 280px;
                             text-decoration: none;
                             border-radius: 3px;
                             padding: 5px 9px;
-                            color: $body-color;
+                            color: var(--#{$prefix}body-color);
                             cursor: pointer;
                             text-transform: initial;
                             white-space: nowrap;
@@ -365,7 +382,7 @@ $hub-sidebar-width: 280px;
                             }
                             &:hover,
                             &.active {
-                                background-color: $gray-200;
+                                background-color: $gray-300;
                             }
                         }
                         ul {
@@ -388,8 +405,6 @@ $hub-sidebar-width: 280px;
 .doc-hub-sections {
     padding-left: 10px;
     flex: 0 0 300px;
-    font-size: $font-size-sm + 1;
-
     .doc-hub-sections-title {
         text-transform: uppercase;
         margin-left: 10px;
@@ -398,11 +413,9 @@ $hub-sidebar-width: 280px;
             font-weight: bold;
         }
     }
-
     .doc-hub-sections-items {
-        border-left: 1px solid $border-color;
+        border-left: 1px solid var(--#{$prefix}border-color);
         padding-top: 20px;
-
         ul {
             margin-top: 10px;
             padding: 0;
@@ -414,7 +427,7 @@ $hub-sidebar-width: 280px;
                     text-decoration: none;
                     border-radius: 3px;
                     padding: 5px 9px;
-                    color: $body-color;
+                    color: var(--#{$prefix}body-color);
                     cursor: pointer;
                     text-transform: initial;
                     white-space: nowrap;
@@ -445,4 +458,169 @@ $hub-sidebar-width: 280px;
             }
         }
     }
+}
+
+.readme-search-result-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+}
+
+.readme-search-result-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.readme-search-result-card h3 a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.readme-search-result-card h3 a:hover {
+    text-decoration: underline;
+}
+
+.readme-search-result-meta {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.readme-search-result-version {
+    background-color: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.readme-search-result-excerpt {
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.readme-search-empty-page {
+    padding: 40px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.readme-search-pagination {
+    margin-top: 30px;
+}
+
+.readme-search-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+}
+
+.readme-search-input-wrapper {
+    position: relative;
+}
+
+.readme-search-input {
+    width: 100%;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.readme-search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.readme-search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+}
+
+.readme-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.readme-search-results-list {
+    padding: 8px;
+}
+
+.readme-search-result-item {
+    display: block;
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s;
+    margin-bottom: 4px;
+}
+
+.readme-search-result-item:hover {
+    background-color: #f3f4f6;
+}
+
+.readme-search-result-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.readme-search-result-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.readme-search-result-version {
+    background-color: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.readme-search-result-page {
+    color: #6b7280;
+}
+
+.readme-search-result-excerpt {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.readme-search-empty,
+.readme-search-loading {
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.readme-search-results.loading {
+    min-height: 100px;
+}
+
+.doc-hub-body .table-of-contents {
+    display: none;
 }

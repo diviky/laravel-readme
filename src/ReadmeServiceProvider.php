@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Diviky\Readme;
 
 use Diviky\Readme\Component\Indexes;
+use Diviky\Readme\Console\Commands\IndexDocuments;
+use Diviky\Readme\Livewire\Docs\Search;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class ReadmeServiceProvider extends ServiceProvider
 {
@@ -15,6 +18,8 @@ class ReadmeServiceProvider extends ServiceProvider
     {
         $this->bootRoutes();
         $this->bootViews();
+        $this->bootMigrations();
+        $this->bootLivewire();
 
         if ($this->app->runningInConsole()) {
             $this->console();
@@ -27,6 +32,11 @@ class ReadmeServiceProvider extends ServiceProvider
         $this->mergeConfigFrom($this->path() . '/config/markdown.php', 'markdown');
 
         Blade::component('readme::indexes', Indexes::class);
+    }
+
+    protected function bootLivewire(): void
+    {
+        Livewire::component('readme.docs.search', Search::class);
     }
 
     protected function path()
@@ -57,6 +67,15 @@ class ReadmeServiceProvider extends ServiceProvider
         $this->publishes([
             $this->path() . '/resources/views/' => resource_path('views'),
         ], 'views');
+
+        $this->commands([
+            IndexDocuments::class,
+        ]);
+    }
+
+    protected function bootMigrations(): void
+    {
+        $this->loadMigrationsFrom($this->path() . '/database/migrations');
     }
 
     protected function bootRoutes(): self

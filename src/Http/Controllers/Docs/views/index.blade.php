@@ -14,7 +14,7 @@
                     </ol>
                 </div>
                 <div class="col-4">
-
+                    <livewire:readme.docs.search :version="$version" />
                 </div>
             </div>
         </div>
@@ -54,9 +54,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .doc-hub-body .table-of-contents {
-        display: none
-    }
-</style>

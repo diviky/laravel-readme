@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Diviky\Readme\Http\Controllers\Docs;
 
 use App\Http\Controllers\Controller as BaseController;
+use Diviky\Readme\Models\Document;
+use Illuminate\Http\Request;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -53,6 +55,40 @@ class Controller extends BaseController
             'versions' => $versions,
             'version' => $version,
             'route' => $config['docs']['route'],
+        ];
+    }
+
+    public function search(Request $request): array
+    {
+        $query = $request->get('q', '');
+        $version = $request->get('version');
+        $docs = resolve(Repository::class);
+        $versions = $docs->getVersions();
+
+        if (empty($query)) {
+            return [
+                'results' => collect([]),
+                'query' => $query,
+                'version' => $version,
+                'versions' => $versions,
+                'route' => config('readme.docs.route'),
+            ];
+        }
+
+        $searchQuery = Document::search($query);
+
+        if ($version) {
+            $searchQuery->where('version', $version);
+        }
+
+        $results = $searchQuery->paginate(15);
+
+        return [
+            'results' => $results,
+            'query' => $query,
+            'version' => $version,
+            'versions' => $versions,
+            'route' => config('readme.docs.route'),
         ];
     }
 }

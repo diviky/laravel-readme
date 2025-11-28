@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Diviky\Readme\Http\Controllers\Docs;
 
 use Diviky\Readme\Http\Controllers\Docs\Mark\MarkExtension;
+use Diviky\Readme\Models\Document;
+use Diviky\Readme\Services\DocumentIndexingService;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Blade;
@@ -69,7 +71,32 @@ class Repository
             $variables = [];
         }
 
+        $this->ensureDocumentIndexed($page, $version);
+
         return $this->setConfig($config)->setVariables($variables)->convert($page, $version);
+    }
+
+    protected function ensureDocumentIndexed(string $page, string $version): void
+    {
+        if (!class_exists(Document::class)) {
+            return;
+        }
+
+        try {
+            $document = Document::where('version', $version)
+                ->where('page', $page)
+                ->first();
+
+            if (!$document) {
+                $service = app(DocumentIndexingService::class);
+                $service->indexDocument($version, $page);
+            } else {
+                $service = app(DocumentIndexingService::class);
+                $service->updateDocumentIfChanged($document);
+            }
+        } catch (\Exception $e) {
+            // Silently fail if indexing is not available
+        }
     }
 
     public function convert(string $page, string $version = '1.0'): string

@@ -4,8 +4,10 @@ namespace Diviky\Readme\Livewire\Code;
 
 use Diviky\Readme\Http\Controllers\Docs\Repository;
 use Diviky\Readme\Parsers\CodeParser;
-use Livewire\Component;
+use Diviky\Support\Livewire\Component;
+use Diviky\Bright\Attributes\ViewPaths;
 
+#[ViewPaths([__DIR__])]
 class Generator extends Component
 {
     public string $content = '';
