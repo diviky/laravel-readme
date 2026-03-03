@@ -60,8 +60,8 @@ class Controller extends BaseController
 
     public function search(Request $request): array
     {
-        $query = $request->get('q', '');
-        $version = $request->get('version');
+        $query = $request->input('q', '');
+        $version = $request->input('version');
         $docs = resolve(Repository::class);
         $versions = $docs->getVersions();
 
