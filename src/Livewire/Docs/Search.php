@@ -79,6 +79,6 @@ class Search extends Component
 
     public function render()
     {
-        return view('readme::livewire.docs.search');
+        return view('readme::livewire.search');
     }
 }
