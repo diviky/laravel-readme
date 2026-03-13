@@ -48,6 +48,7 @@ class Repository
     protected $cache;
 
     protected $config = [];
+
     protected $variables = [];
 
     /**
@@ -144,15 +145,15 @@ class Repository
 
         $converter = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)
             ->commonmarkOptions($settings)
-            ->addExtension(new GithubFlavoredMarkdownExtension())
-            ->addExtension(new AttributesExtension())
-            ->addExtension(new FootnoteExtension())
-            ->addExtension(new MentionExtension())
-            ->addExtension(new SmartPunctExtension())
-            ->addExtension(new MarkExtension())
-            ->addExtension(new TableExtension())
-            ->addExtension(new HeadingPermalinkExtension())
-            ->addExtension(new TableOfContentsExtension());
+            ->addExtension(new GithubFlavoredMarkdownExtension)
+            ->addExtension(new AttributesExtension)
+            ->addExtension(new FootnoteExtension)
+            ->addExtension(new MentionExtension)
+            ->addExtension(new SmartPunctExtension)
+            ->addExtension(new MarkExtension)
+            ->addExtension(new TableExtension)
+            ->addExtension(new HeadingPermalinkExtension)
+            ->addExtension(new TableOfContentsExtension);
 
         $extensions = $this->config['extensions'] ?? [];
 
@@ -167,10 +168,8 @@ class Repository
 
     /**
      * Replace the version place-holder in links.
-     *
-     * @return string
      */
-    public function replaceLinks(string $content, string $version = null): ?string
+    public function replaceLinks(string $content, ?string $version = null): ?string
     {
         $variables = $this->variables;
         if (!empty($version)) {
@@ -190,7 +189,7 @@ class Repository
             }
         }
 
-        if (isset($this->config['blade_support']) && true == $this->config['blade_support']) {
+        if (isset($this->config['blade_support']) && $this->config['blade_support'] == true) {
             $content = $this->blade($content, $variables);
         }
 
@@ -242,10 +241,6 @@ class Repository
 
     /**
      * Set the value of config.
-     *
-     * @param array $config
-     *
-     * @return self
      */
     public function setConfig(array $config): self
     {
@@ -265,8 +260,7 @@ class Repository
     /**
      * Set the value of variables.
      *
-     * @param mixed $variables
-     *
+     * @param  mixed  $variables
      * @return self
      */
     public function setVariables($variables)
@@ -296,7 +290,7 @@ class Repository
     protected function getClassInstance($class)
     {
         if (is_string($class) && class_exists($class)) {
-            $class = new $class();
+            $class = new $class;
         }
 
         return $class;
@@ -332,7 +326,7 @@ class Repository
             $path .= '/' . $docs['landing'];
         }
 
-        $path = rtrim($path, '.md') . '.md';
+        $path = preg_replace('/\.md$/', '', $path) . '.md';
         $path = \str_replace('//', '/', $path);
 
         if ($this->files->exists($path)) {
@@ -345,8 +339,8 @@ class Repository
     /**
      * Render a given blade template with the optionally given data.
      *
-     * @param string $content
-     * @param array  $data
+     * @param  string  $content
+     * @param  array  $data
      */
     protected function blade($content, $data = []): string
     {
